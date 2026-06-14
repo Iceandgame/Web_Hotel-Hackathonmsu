@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import BookingForm from './BookingForm';
-import HotelSearchAI from './HotelSearchAI';
+import HotelSearchAI from './Hotelsearchai';
 
 function Hotellist({ user }) {
   const [hotels, setHotels] = useState([]);
@@ -8,7 +8,7 @@ function Hotellist({ user }) {
   const [selectedHotel, setSelectedHotel] = useState(null);
 
   useEffect(() => {
-    fetch('/api/hotels')
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/hotels`)
       .then(res => res.json())
       .then(data => setHotels(data))
       .catch(err => console.error('Error fetching hotels:', err));

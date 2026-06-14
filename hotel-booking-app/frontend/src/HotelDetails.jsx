@@ -10,7 +10,7 @@ function HotelDetails({ hotel, user }) {
 
   const handleBooking = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/bookings', {
+        const response = await axios.post('/api/bookings', {
         user: user.email, 
         hotel_id: hotel.id,
         booking_date: booking.check_in,

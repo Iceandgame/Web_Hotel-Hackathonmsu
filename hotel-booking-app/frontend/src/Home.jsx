@@ -7,7 +7,7 @@ function Home() {
 
   // ดึงข้อมูลโรงแรม
   const fetchHotels = async (query = '') => {
-    const res = await axios.get(`http://localhost:5000/api/hotels?search=${query}`);
+    const res = await axios.get(`/api/hotels?search=${query}`);
     setHotels(res.data);
   };
 
