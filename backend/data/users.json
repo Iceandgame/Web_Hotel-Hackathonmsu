@@ -100,7 +100,7 @@
     "name": "Sarah Lee",
     "email": "sarah.l@example.com",
     "phone": "087-654-3210",
-    "loyalty_points": 1250,
+    "loyalty_points": 0,
     "role": "VIP"
   },
   {

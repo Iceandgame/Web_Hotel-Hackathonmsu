@@ -599,5 +599,19 @@
     "check_out": "2026-06-18",
     "guests": 1,
     "status": "PENDING"
+  },
+  {
+    "id": 1781440021669,
+    "user": "sarah.l@example.com",
+    "hotel_id": "h-001",
+    "booking_date": "2026-06-15",
+    "check_out": "2026-06-16",
+    "guests": 1,
+    "original_price": 3500,
+    "vip_discount": 350,
+    "points_used": 1250,
+    "points_discount": 125,
+    "final_price": 3025,
+    "status": "PENDING"
   }
 ]
