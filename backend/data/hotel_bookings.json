@@ -567,5 +567,37 @@
     "hotel_id": "h-001",
     "booking_date": "2026-06-16",
     "date": "2026-06-13T11:54:42.911Z"
+  },
+  {
+    "id": 1781377706633,
+    "user": "arthit.s@example.com",
+    "hotel_id": "h-001",
+    "booking_date": "2026-06-02",
+    "status": "Pending"
+  },
+  {
+    "id": 1781377904596,
+    "user": "arthit.s@example.com",
+    "hotel_id": "h-001",
+    "booking_date": "2026-06-14",
+    "status": "Pending"
+  },
+  {
+    "id": 1781394405580,
+    "user": "pimchanok.l@example.com",
+    "hotel_id": "h-001",
+    "booking_date": "2026-06-14",
+    "check_out": "2026-06-16",
+    "guests": 1,
+    "status": "PENDING"
+  },
+  {
+    "id": 1781435581505,
+    "user": "pimchanok.l@example.com",
+    "hotel_id": "h-002",
+    "booking_date": "2026-06-14",
+    "check_out": "2026-06-18",
+    "guests": 1,
+    "status": "PENDING"
   }
 ]

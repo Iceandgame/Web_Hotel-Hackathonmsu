@@ -111,7 +111,6 @@
     "loyalty_points": 45,
     "role": "MEMBER"
   },
-  
   {
     "user_id": "u015",
     "name": "Pimchanok Luea",
@@ -120,13 +119,9 @@
     "loyalty_points": 780,
     "role": "MEMBER"
   },
-
-  
   {
     "email": "admin@hotel.com",
     "name": "Super Admin",
     "role": "admin"
   }
-  
-  
 ]
