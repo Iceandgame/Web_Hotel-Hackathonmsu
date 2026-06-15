@@ -11,7 +11,7 @@ function Login({ onLogin }) {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post('/api/login', { email });
+      const response = await axios.post('https://web-hotel-hackathonmsu.onrender.com/api/login', { email });
       onLogin(response.data.user);
     } catch (err) {
       console.error('Login error:', err);
