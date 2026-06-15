@@ -35,7 +35,7 @@ function BookingForm({ hotel, user, onClose, onSuccess }) {
 
   const handleConfirm = async () => {
     try {
-      await axios.post('/api/bookings', {
+      await axios.post('https://web-hotel-hackathonmsu.onrender.com/api/bookings', {
         user: user.email,
         hotel_id: hotel.hotel_id,
         booking_date: checkIn,
