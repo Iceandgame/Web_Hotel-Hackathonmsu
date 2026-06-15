@@ -4,6 +4,7 @@ import Login from './login';
 import MyBookings from './MyBookings';
 import AdminDashboard from './AdminDashboard';
 import AdminHome from './AdminHome';
+import AdminStats from './AdminStats';
 import Profile from './Profile';
 
 function App() {
@@ -37,22 +38,16 @@ function App() {
 
   return (
     <div className="App">
-      <nav style={{
-        padding: '12px 24px', borderBottom: '1px solid #e5e7eb',
-        display: 'flex', alignItems: 'center', gap: '8px', background: '#fff',
-      }}>
+      <nav style={{ padding: '12px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px', background: '#fff' }}>
         {navBtn('หน้าแรก', 'home')}
         {(role === 'MEMBER' || role === 'VIP') && navBtn('รายการจองของฉัน', 'my-bookings')}
         {(role === 'MEMBER' || role === 'VIP') && navBtn('โปรไฟล์', 'profile')}
         {role === 'ADMIN' && navBtn('Admin Panel', 'admin-dashboard')}
+        {role === 'ADMIN' && navBtn('สถิติ', 'admin-stats')}
 
         <button
           onClick={() => { setUser(null); setView('home'); }}
-          style={{
-            marginLeft: 'auto', padding: '8px 18px', borderRadius: '8px',
-            border: '1.5px solid #e5e7eb', background: 'transparent',
-            color: '#6b7280', fontWeight: '600', fontSize: '14px', cursor: 'pointer',
-          }}
+          style={{ marginLeft: 'auto', padding: '8px 18px', borderRadius: '8px', border: '1.5px solid #e5e7eb', background: 'transparent', color: '#6b7280', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}
           onMouseEnter={e => { e.target.style.background = '#f9fafb'; }}
           onMouseLeave={e => { e.target.style.background = 'transparent'; }}
         >
@@ -60,7 +55,7 @@ function App() {
         </button>
       </nav>
 
-      {view === 'home' && role === 'ADMIN' && <AdminHome user={user} />}
+      {view === 'home' && role === 'ADMIN' && <AdminHome user={user} onNavigate={setView} />}
       {view === 'home' && role !== 'ADMIN' && (
         <>
           <h1 style={{ textAlign: 'center', fontSize: '28px', fontWeight: '700', margin: '24px 0 8px', color: '#111' }}>
@@ -72,6 +67,7 @@ function App() {
       {view === 'my-bookings' && (role === 'MEMBER' || role === 'VIP') && <MyBookings user={user} />}
       {view === 'profile' && (role === 'MEMBER' || role === 'VIP') && <Profile user={user} />}
       {view === 'admin-dashboard' && role === 'ADMIN' && <AdminDashboard />}
+      {view === 'admin-stats' && role === 'ADMIN' && <AdminStats />}
     </div>
   );
 }
