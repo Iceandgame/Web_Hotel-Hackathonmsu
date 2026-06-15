@@ -14,7 +14,6 @@ function AdminHome({ user, onNavigate }) {
           { title: 'จัดการ Bookings', desc: 'ดู เปลี่ยนสถานะ และติดตามการจองทั้งหมด', view: 'admin-dashboard' },
           { title: 'ผู้ใช้งาน', desc: 'ดูข้อมูล MEMBER และ VIP ในระบบ', view: null },
           { title: 'โรงแรม', desc: 'รายชื่อโรงแรมและข้อมูลทั้งหมด 50 แห่ง', view: null },
-          { title: 'สถิติ', desc: 'สรุปยอดจองและสถานะภาพรวม', view: 'admin-stats' },
         ].map(item => (
           <div key={item.title}
             onClick={() => item.view && onNavigate(item.view)}

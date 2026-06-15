@@ -4,7 +4,6 @@ import Login from './login';
 import MyBookings from './MyBookings';
 import AdminDashboard from './AdminDashboard';
 import AdminHome from './AdminHome';
-import AdminStats from './AdminStats';
 import Profile from './Profile';
 
 function App() {
@@ -43,7 +42,6 @@ function App() {
         {(role === 'MEMBER' || role === 'VIP') && navBtn('รายการจองของฉัน', 'my-bookings')}
         {(role === 'MEMBER' || role === 'VIP') && navBtn('โปรไฟล์', 'profile')}
         {role === 'ADMIN' && navBtn('Admin Panel', 'admin-dashboard')}
-        {role === 'ADMIN' && navBtn('สถิติ', 'admin-stats')}
 
         <button
           onClick={() => { setUser(null); setView('home'); }}
@@ -67,7 +65,6 @@ function App() {
       {view === 'my-bookings' && (role === 'MEMBER' || role === 'VIP') && <MyBookings user={user} />}
       {view === 'profile' && (role === 'MEMBER' || role === 'VIP') && <Profile user={user} />}
       {view === 'admin-dashboard' && role === 'ADMIN' && <AdminDashboard />}
-      {view === 'admin-stats' && role === 'ADMIN' && <AdminStats />}
     </div>
   );
 }
