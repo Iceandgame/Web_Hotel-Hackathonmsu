@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const STATUSES = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
+const API = 'https://web-hotel-hackathonmsu.onrender.com';
 
 const STATUS_CONFIG = {
   CONFIRMED:   { label: 'ยืนยันแล้ว',    bg: '#dcfce7', color: '#16a34a', border: '#bbf7d0' },
@@ -14,160 +14,171 @@ const STATUS_CONFIG = {
 function StatusBadge({ status }) {
   const s = STATUS_CONFIG[status?.toUpperCase()] || STATUS_CONFIG.PENDING;
   return (
-    <span style={{
-      padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600',
-      background: s.bg, color: s.color, border: `1px solid ${s.border}`, whiteSpace: 'nowrap',
-    }}>{s.label}</span>
+    <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '99px', fontSize: '12px', fontWeight: '600', background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
+      {s.label}
+    </span>
   );
 }
 
-function AdminDashboard() {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState('ALL');
-  const [search, setSearch] = useState('');
-  const [updating, setUpdating] = useState(null); // id ที่กำลัง update
+function EditModal({ booking, onClose, onSave }) {
+  const [checkIn, setCheckIn] = useState(booking.booking_date || '');
+  const [checkOut, setCheckOut] = useState(booking.check_out || '');
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    axios.get('/api/admin/bookings')
-      .then(r => setBookings(r.data))
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
+  const nights = checkIn && checkOut ? Math.max(0, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000)) : 0;
 
-  const changeStatus = async (booking, newStatus) => {
-    const id = booking.id || booking.booking_id;
-    setUpdating(id);
+  const handleSave = async () => {
+    if (!checkIn || !checkOut) return alert('กรุณาเลือกวันให้ครบ');
+    if (nights <= 0) return alert('วันเช็คเอาท์ต้องมาหลังเช็คอิน');
+    setSaving(true);
     try {
-      await axios.patch(`/api/admin/bookings/${id}`, { status: newStatus });
-      setBookings(bookings.map(b =>
-        (b.id || b.booking_id) === id ? { ...b, status: newStatus } : b
-      ));
+      await axios.put(`${API}/api/bookings/${booking.id || booking.booking_id}`, { booking_date: checkIn, check_out: checkOut });
+      onSave(booking.id || booking.booking_id, checkIn, checkOut);
+      onClose();
     } catch (err) {
-      console.error('Error updating status:', err);
-      alert('เปลี่ยนสถานะไม่สำเร็จ');
-    } finally { setUpdating(null); }
+      alert(err.response?.data?.message || 'เกิดข้อผิดพลาด');
+    } finally { setSaving(false); }
   };
 
-  const filtered = bookings.filter(b => {
-    const matchStatus = filterStatus === 'ALL' || b.status?.toUpperCase() === filterStatus;
-    const matchSearch = !search ||
-      b.hotel_name?.toLowerCase().includes(search.toLowerCase()) ||
-      b.user_name?.toLowerCase().includes(search.toLowerCase());
-    return matchStatus && matchSearch;
-  });
+  const overlay = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
+  const modal = { background: '#fff', borderRadius: '12px', padding: '28px', width: '380px', maxWidth: '90vw', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' };
+  const inp = { width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #e5e7eb', fontSize: '14px', boxSizing: 'border-box', marginBottom: '14px' };
 
-  // สรุปยอด
-  const summary = STATUSES.reduce((acc, s) => {
-    acc[s] = bookings.filter(b => b.status?.toUpperCase() === s).length;
-    return acc;
-  }, {});
+  return (
+    <div style={overlay} onClick={onClose}>
+      <div style={modal} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '700' }}>แก้ไขวันที่จอง</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#9ca3af' }}>x</button>
+        </div>
+        <label style={{ fontSize: '13px', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>วันเช็คอิน</label>
+        <input style={inp} type="date" value={checkIn} onChange={e => setCheckIn(e.target.value)} />
+        <label style={{ fontSize: '13px', fontWeight: '600', color: '#374151', display: 'block', marginBottom: '4px' }}>วันเช็คเอาท์</label>
+        <input style={inp} type="date" min={checkIn} value={checkOut} onChange={e => setCheckOut(e.target.value)} />
+        {nights > 0 && (
+          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '10px 14px', marginBottom: '16px', fontSize: '14px', color: '#16a34a', fontWeight: '600' }}>
+            {nights} คืน
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+          <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: '8px', border: '1.5px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: '14px' }}>ยกเลิก</button>
+          <button onClick={handleSave} disabled={saving} style={{ padding: '9px 18px', borderRadius: '8px', border: 'none', background: '#4f46e5', color: '#fff', fontWeight: '600', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '14px', opacity: saving ? 0.7 : 1 }}>
+            {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MyBookings({ user }) {
+  const [myBookings, setMyBookings] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [editingBooking, setEditingBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [bookingsRes, hotelsRes] = await Promise.all([
+          axios.get(`${API}/api/bookings/${user.email}`),
+          axios.get(`${API}/api/hotels`),
+        ]);
+        setMyBookings(bookingsRes.data);
+        setHotels(hotelsRes.data);
+      } catch (err) {
+        console.error("Error loading data", err);
+      } finally { setLoading(false); }
+    };
+    fetchData();
+  }, [user.email]);
+
+  const cancelBooking = async (booking) => {
+    const status = booking.status?.toUpperCase();
+    if (status === 'CHECKED_IN' || status === 'CHECKED_OUT') return alert('ไม่สามารถยกเลิก booking ที่เช็คอินแล้วได้');
+    if (!window.confirm('คุณต้องการยกเลิกการจองนี้ใช่หรือไม่?')) return;
+    try {
+      await axios.delete(`${API}/api/bookings/${booking.id || booking.booking_id}`);
+      setMyBookings(myBookings.filter(b => (b.id || b.booking_id) !== (booking.id || booking.booking_id)));
+    } catch (err) {
+      console.error(err);
+      alert('เกิดข้อผิดพลาดในการยกเลิก');
+    }
+  };
+
+  const handleSave = (bookingId, newCheckIn, newCheckOut) => {
+    setMyBookings(myBookings.map(b => (b.id || b.booking_id) === bookingId ? { ...b, booking_date: newCheckIn, check_out: newCheckOut } : b));
+  };
+
+  const getHotelName = (id) => {
+    const hotel = hotels.find(h => h.hotel_id === id);
+    return hotel ? hotel.name : id;
+  };
+
+  const canEdit = (status) => {
+    const s = status?.toUpperCase();
+    return s !== 'CHECKED_IN' && s !== 'CHECKED_OUT' && s !== 'CANCELLED';
+  };
 
   return (
     <>
       <style>{`
-        .admin-wrap { max-width: 1100px; margin: 32px auto; padding: 0 20px; }
-        .summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
-        @media (max-width: 768px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-        .summary-card { border-radius: 10px; padding: 14px 16px; border: 1px solid; cursor: pointer; transition: opacity 0.2s; }
-        .summary-card:hover { opacity: 0.8; }
-        .admin-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .admin-table th { text-align: left; padding: 10px 12px; background: #f9fafb; color: #6b7280; font-size: 12px; font-weight: 600; border-bottom: 1px solid #e5e7eb; }
-        .admin-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; color: #111; vertical-align: middle; }
-        .admin-table tr:hover td { background: #fafafa; }
-        .status-select { padding: 6px 10px; border-radius: 7px; border: 1.5px solid #e5e7eb; font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; outline: none; }
-        .status-select:focus { border-color: #4f46e5; }
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
-        .search-inp { padding: 9px 14px; border-radius: 8px; border: 1.5px solid #e5e7eb; font-size: 14px; outline: none; width: 220px; }
-        .search-inp:focus { border-color: #4f46e5; }
+        .bookings-wrap { max-width: 760px; margin: 32px auto; padding: 0 20px; }
+        .booking-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 14px; background: #fff; }
+        .booking-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .booking-hotel { font-size: 16px; font-weight: 700; color: #111; margin: 0 0 10px; }
+        .booking-row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 12px; }
+        .booking-detail { font-size: 13px; color: #6b7280; }
+        .booking-detail span { color: #111; font-weight: 600; }
+        .booking-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+        .btn-cancel { padding: 8px 14px; border-radius: 7px; border: 1.5px solid #fca5a5; background: #fff; color: #ef4444; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-cancel:hover { background: #ef4444; color: #fff; }
       `}</style>
 
-      <div className="admin-wrap">
+      <div className="bookings-wrap">
         <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#111', margin: '0 0 20px' }}>
-          Admin — จัดการ Bookings
-          <span style={{ marginLeft: '8px', fontSize: '14px', color: '#9ca3af', fontWeight: '400' }}>
-            ({bookings.length} รายการทั้งหมด)
-          </span>
+          รายการจองของฉัน
+          <span style={{ marginLeft: '8px', fontSize: '14px', color: '#9ca3af', fontWeight: '400' }}>({myBookings.length} รายการ)</span>
         </h2>
 
-        {/* Summary cards */}
-        <div className="summary-grid">
-          {STATUSES.map(s => {
-            const cfg = STATUS_CONFIG[s];
+        {loading ? (
+          <p style={{ color: '#9ca3af', textAlign: 'center', marginTop: '60px' }}>กำลังโหลด...</p>
+        ) : myBookings.length === 0 ? (
+          <p style={{ color: '#9ca3af', textAlign: 'center', marginTop: '60px' }}>ยังไม่มีรายการจอง</p>
+        ) : (
+          myBookings.map((b) => {
+            const bookingKey = b.id || b.booking_id;
             return (
-              <div key={s} className="summary-card"
-                style={{ background: cfg.bg, borderColor: cfg.border }}
-                onClick={() => setFilterStatus(filterStatus === s ? 'ALL' : s)}
-              >
-                <p style={{ margin: '0 0 4px', fontSize: '12px', color: cfg.color, fontWeight: '600' }}>{cfg.label}</p>
-                <p style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: cfg.color }}>{summary[s] || 0}</p>
+              <div key={bookingKey} className="booking-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                  <p className="booking-hotel">{getHotelName(b.hotel_id)}</p>
+                  <StatusBadge status={b.status} />
+                </div>
+                <div className="booking-row">
+                  <p className="booking-detail">เช็คอิน: <span>{b.booking_date || b.check_in || '-'}</span></p>
+                  {b.check_out && <p className="booking-detail">เช็คเอาท์: <span>{b.check_out}</span></p>}
+                  {b.guests && <p className="booking-detail">ผู้เข้าพัก: <span>{b.guests} คน</span></p>}
+                </div>
+                {canEdit(b.status) && (
+                  <div className="booking-actions">
+                    <button onClick={() => setEditingBooking(b)}
+                      style={{ padding: '8px 14px', borderRadius: '7px', border: '1.5px solid #4f46e5', background: '#fff', color: '#4f46e5', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
+                      แก้ไขวันที่
+                    </button>
+                    <button className="btn-cancel" onClick={() => cancelBooking(b)}>ยกเลิกการจอง</button>
+                  </div>
+                )}
               </div>
             );
-          })}
-        </div>
-
-        {/* Filter bar */}
-        <div className="filter-bar">
-          <input className="search-inp" placeholder="ค้นหาชื่อโรงแรม / ผู้จอง..."
-            value={search} onChange={e => setSearch(e.target.value)} />
-          <select className="status-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="ALL">ทุกสถานะ</option>
-            {STATUSES.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
-          </select>
-          <span style={{ fontSize: '13px', color: '#9ca3af' }}>แสดง {filtered.length} รายการ</span>
-        </div>
-
-        {/* Table */}
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
-          {loading ? (
-            <p style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>กำลังโหลด...</p>
-          ) : filtered.length === 0 ? (
-            <p style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>ไม่พบรายการ</p>
-          ) : (
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>โรงแรม</th>
-                  <th>ผู้จอง</th>
-                  <th>เช็คอิน</th>
-                  <th>เช็คเอาท์</th>
-                  <th>สถานะ</th>
-                  <th>เปลี่ยนสถานะ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(b => {
-                  const id = b.id || b.booking_id;
-                  const isUpdating = updating === id;
-                  return (
-                    <tr key={id}>
-                      <td style={{ fontWeight: '600' }}>{b.hotel_name}</td>
-                      <td style={{ color: '#6b7280' }}>{b.user_name}</td>
-                      <td>{b.booking_date || b.check_in || '-'}</td>
-                      <td>{b.check_out || '-'}</td>
-                      <td><StatusBadge status={b.status} /></td>
-                      <td>
-                        <select
-                          className="status-select"
-                          value={b.status?.toUpperCase() || 'PENDING'}
-                          disabled={isUpdating}
-                          onChange={e => changeStatus(b, e.target.value)}
-                        >
-                          {STATUSES.map(s => (
-                            <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+          })
+        )}
       </div>
+
+      {editingBooking && (
+        <EditModal booking={editingBooking} onClose={() => setEditingBooking(null)} onSave={handleSave} />
+      )}
     </>
   );
 }
 
-export default AdminDashboard;
+export default MyBookings;
