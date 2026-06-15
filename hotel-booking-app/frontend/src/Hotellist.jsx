@@ -8,7 +8,7 @@ function Hotellist({ user }) {
   const [selectedHotel, setSelectedHotel] = useState(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/hotels`)
+    fetch('https://web-hotel-hackathonmsu.onrender.com/api/hotels')
       .then(res => res.json())
       .then(data => setHotels(data))
       .catch(err => console.error('Error fetching hotels:', err));
